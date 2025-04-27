@@ -1,0 +1,101 @@
+Description: >-
+  AWS CloudFormation template that creates an EC2 instance in a public subnet.
+
+Mappings:
+  RegionMap:
+    us-east-1:
+      AMI: ami-0e449927258d45bc4
+    us-west-2:
+      AMI: ami-05572e392e80aee89
+
+
+Parameters:
+  InstanceType:
+    Description: >-
+      EC2 instance type.
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+    ConstraintDescription: Must be a valid EC2 instance type.
+  CrossStackName:
+    Description: >-
+      The name of the cross-stack reference to the network stack.
+    Type: String
+    Default: SampleNetworkCrossStack
+    AllowedPattern: '^[a-zA-Z0-9-]+$'
+    ConstraintDescription: Must be a valid cross-stack reference name.
+  UserName:
+    Description: >-
+      The name of the user to display.
+    Type: String
+    Default: William
+    ConstraintDescription: Must be a valid name.
+  TagName:
+    Description: >-
+      The name of the tag to assign to the EC2 instance.
+    Type: String
+    Default: WilliamEC2Instance
+    ConstraintDescription: Must be a valid tag name for all your ressources.
+
+Resources:
+  KeyPair:
+    Type: 'AWS::EC2::KeyPair'
+    Properties:
+      KeyName: !Sub '${AWS::StackName}-KeyPair'
+      Tags:
+        - Key: "Name"
+          Value: !Ref TagName
+
+  Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      KeyName:
+        Ref: KeyPair
+      InstanceType:
+        Ref: InstanceType
+      ImageId:
+        Fn::FindInMap:
+          - RegionMap
+          - Ref: AWS::Region
+          - AMI
+      SubnetId:
+        Fn::ImportValue:
+          !Sub '${CrossStackName}-SubnetID'
+      SecurityGroupIds:
+        - Fn::ImportValue:
+            Fn::Sub: '${CrossStackName}-SecurityGroupID'
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y httpd
+          service httpd start
+          echo "Hello, ${UserName}! from $(hostname -f)" > /var/www/html/index.html
+          chkconfig httpd on
+      Tags:
+        - Key: "Name"
+          Value: !Ref TagName
+  
+  EIP:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      InstanceId:
+        Ref: Instance
+      Tags:
+        - Key: "Name"
+          Value: !Ref TagName
+
+Outputs:
+  InstanceIPV4Address:
+    Description: >-
+      The IPv4 address of the EC2 instance.
+    Value:
+      Fn::GetAtt: Instance.PrivateIp
+  InstanceDNSName:
+    Description: >-
+      The DNS name of the EC2 instance.
+    Value: !GetAtt Instance.PublicDnsName
+    
