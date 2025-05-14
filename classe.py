@@ -1,2 +1,2 @@
 def nom(nom):
-    print(a)
+    print(nom)
