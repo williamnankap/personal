@@ -1,0 +1,82 @@
+# This playbook pings the AWS EC2 instance with AMZ_Linux System.
+- name: Ping AWS EC2 AMZ_Linux
+  become: true
+  remote_user: ec2-user
+  hosts: AMZ_Linux_Client
+  tasks:
+    - name: Pinging AMZ_Linux
+      ping:
+
+# This playbook pings the AWS EC2 instance with Ubuntu system.
+- name: Ping AWS EC2 Ubuntu
+  become: true
+  remote_user: ubuntu
+  hosts: Ubuntu_Client
+  tasks:
+    - name: Pinging Ubuntu
+      ping:
+
+# Debug the ansible-playbook to show my name
+- name: Debug my name
+  hosts: AMZ_Linux_Client
+  remote_user: ec2-user
+  vars_files:
+    - env.yaml
+  tasks:
+    - name: Show my name and description
+      ansible.builtin.debug:
+        msg: "My name is {{name}}, {{description}}"
+
+# Debug the ansible-playbook to show my name
+- name: Debug my name
+  hosts: Ubuntu_Client
+  remote_user: ubuntu
+  vars_files:
+    - env.yaml
+  tasks:
+    - name: Show my name and description
+      ansible.builtin.debug:
+        msg: "My name is {{name}}, {{description}}"
+
+# Install git in my remote ec2
+- name: Install git
+  become: true
+  hosts: Ubuntu_Client
+  remote_user: ubuntu
+  tasks:
+    - name: Update apt cache (apt-get update)
+      ansible.builtin.apt:
+        update_cache: yes
+        clean: yes
+    - name: Install git
+      ansible.builtin.apt:
+        name: git
+        state: latest
+
+# This playbook installs and configures Apache on a remote server (Ubuntu).
+- name: Install and configure Apache
+  become: true
+  hosts: Ubuntu_Client
+  remote_user: ubuntu
+  tasks:
+    - name: apt update all packages # apt update -y
+      ansible.builtin.apt:
+        name: '*'
+        state: latest
+        update_cache: yes
+    - name: Install Apache # apt install httpd -y
+      ansible.builtin.apt:
+        name: apache2
+        state: present
+    - name: Start Apache # systemctl start httpd
+      ansible.builtin.service:
+        name: apache2
+        state: started
+    - name: Enable Apache on boot # systemctl enable httpd
+      ansible.builtin.service:
+        name: apache2
+        enabled: true
+    - name: Copy index html # echo "Hello World" > /var/www/html/index.html
+      ansible.builtin.copy:
+        src: index.html
+        dest: /var/www/html/index.html
