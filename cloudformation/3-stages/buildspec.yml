@@ -1,0 +1,21 @@
+version: 0.2
+
+env:
+  variables:
+    IMAGE_NAME: python-hello-world-image
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+  build:
+    commands:
+      - echo "Building Docker image..."
+      - docker build -t $IMAGE_NAME .
+      - docker save $IMAGE_NAME > $IMAGE_NAME.tar
+  post_build:
+    commands:
+      - echo "Build done."
+artifacts:
+  files:
+    - $IMAGE_NAME.tar
