@@ -13,6 +13,11 @@ phases:
       - apt update
       - apt install -y docker.io
       - echo "Docker installed."
+  pre_build:
+    commands:
+      - echo "Verify repository..."
+      - ls -la
+      - echo "Repository verified."
   build:
     commands:
       - echo "Building Docker image..."
