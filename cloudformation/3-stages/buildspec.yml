@@ -15,11 +15,16 @@ phases:
       - echo "Docker installed."
   pre_build:
     commands:
+      - echo "Navigating to repository..."
+      - cd cloudformation/3-stages
       - echo "Verify repository..."
       - ls -la
       - echo "Repository verified."
   build:
     commands:
+      - echo "Verify repository..."
+      - ls -la
+      - echo "Repository verified."
       - echo "Building Docker image..."
       - docker build -t $IMAGE_NAME .
       - docker save $IMAGE_NAME > $IMAGE_NAME.tar
