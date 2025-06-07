@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Personal Docker Hub</title>
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: black;
+    overflow: hidden;
+    font-family: 'Orbitron', sans-serif;
+    color: #00ffe0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  .container {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+  h1 {
+    font-size: 6em;
+    margin: 0;
+    animation: flicker 2s infinite alternate, glitch 1s infinite;
+    text-shadow: 0 0 10px #00ffe0, 0 0 20px #00ffe0;
+  }
+  p, .animated-subtext {
+    font-size: 1.5em;
+    color: #66ffe0;
+    margin-top: 20px;
+    opacity: 0.7;
+    animation: flicker 2s infinite alternate;
+  }
+  .animated-subtext {
+    font-size: 1.3em;
+    color: #44ffee;
+    margin-top: 10px;
+    animation: flicker 2s infinite alternate, glitch 1s infinite;
+  }
+
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+  }
+
+  @keyframes glitch {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0, 0); }
+  }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+</head>
+<body>
+<canvas id="starfield"></canvas>
+
+<div class="container">
+  <h1 id="dynamic-text">Hello World!</h1>
+  <p>Design by William Nankap!</p>
+  <div class="animated-subtext" id="animated-subtext">Your Devops guys</div>
+</div>
+
+<script>
+  // 3D starfield
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  const numStars = 200;
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  function initStars() {
+    stars = [];
+    for (let i = 0; i < numStars; i++) {
+      stars.push({
+        x: Math.random() * canvas.width - canvas.width / 2,
+        y: Math.random() * canvas.height - canvas.height / 2,
+        z: Math.random() * canvas.width
+      });
+    }
+  }
+
+  function animate() {
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'white';
+    for (let i = 0; i < numStars; i++) {
+      const star = stars[i];
+      star.z -= 2;
+      if (star.z <= 0) star.z = canvas.width;
+
+      const k = 128.0 / star.z;
+      const x = star.x * k + canvas.width / 2;
+      const y = star.y * k + canvas.height / 2;
+
+      if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
+        const size = (1 - star.z / canvas.width) * 3;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  initStars();
+  animate();
+
+  // Dynamic main text cycle
+  const texts = ["Hello World!", "Welcome into my universe!", "Explore my personal Docker repo!", "Join me now!"];
+  let index = 0;
+  const dynamicText = document.getElementById("dynamic-text");
+
+  setInterval(() => {
+    index = (index + 1) % texts.length;
+    dynamicText.textContent = texts[index];
+  }, 4000); // Change every 4 seconds
+</script>
+</body>
+</html>
