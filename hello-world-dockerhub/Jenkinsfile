@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_HUB_REPO  = "williamnkp/hello"
+        DOCKER_HUB_CREDS = credentials('DockerHubPersonalRepo')
+    }
+
+    stages {
+        stage('Source') {
+            steps {
+                echo 'Checking into github'
+                git branch: 'main', credentialsId: 'personal-github-cred', url: 'https://github.com/williamnankap/personal.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                echo 'Docker build'
+                sh 'ls -la'
+                dir('hello-world-dockerhub') {
+                    sh 'ls -la'
+                    sh 'docker build -t will-hello:v${BUILD_NUMBER} .'
+                    sh 'docker rm -f hello'
+                    sh 'docker run -d --name hello -p 80:80 will-hello:v${BUILD_NUMBER}'
+                }
+                sh 'docker images'
+                sh 'docker ps'
+            }
+        }
+        stage('Docker Login') {
+            steps {
+                echo " Your repo docker is ${DOCKER_HUB_REPO} and user is ${DOCKER_HUB_CREDS_USR}"
+                sh 'docker login -u ${DOCKER_HUB_CREDS_USR} -p ${DOCKER_HUB_CREDS_PSW}'
+            }
+        }
+        stage('Docker Push') {
+            steps {
+                echo " Your repo docker is ${DOCKER_HUB_REPO} and user is ${DOCKER_HUB_CREDS_USR}"
+                sh 'docker tag will-hello:v${BUILD_NUMBER} ${DOCKER_HUB_REPO}:v${BUILD_NUMBER}'
+                sh 'docker push ${DOCKER_HUB_REPO}:v${BUILD_NUMBER}'
+            }
+        }
+    }
+}
